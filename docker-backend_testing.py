@@ -15,7 +15,7 @@ from time import sleep as sl
 
 UID = rr(20, 30)
 
-CRED = {'host': 'remotemysql.com',
+CRED = {'host': '127.0.0.1',
         'user': 'qJAFjFrDlh',
         'database': 'qJAFjFrDlh',
         'port': 3306}
@@ -143,33 +143,38 @@ def cleanup(uid: int):
 
 
 def main():
-    """
+    """ 
     main driver for the test itself,
     Calls testing functions with args from get_test_configuration func.
     """
+    retry = 0
+    while retry < 5:
+        try:
+            # Waiting a bit to make extra sure docker-compose is done
+            sl(8)
 
-    # setting current test parameters from db
-    this_test = get_test_configuration()
-    USER_NAME, APP_PATH = (this_test['User'], this_test['Gateway'])
+            # setting current test parameters from db
+            this_test = get_test_configuration()
+            USER_NAME, APP_PATH = (this_test['User'], this_test['Gateway'])
 
-    # left for posteriry / more than 1 running servers
-    APP_PATH = APP_PATH + str(UID)
+            # left for posteriry / more than 1 running servers
+            APP_PATH = APP_PATH + str(UID)
 
-    # Waiting a bit to make sure docker-compose is done
-    sl(3)
+            print('--==> DOCKERIZED SERVER TEST VERSION <==--')
+            print(f"Testing with UID {UID} as {USER_NAME}...\n\nProgress:")
+            post_2_db_api(APP_PATH, USER_NAME)
+            get_from_db_api(APP_PATH, USER_NAME)
+            get_from_mysql(UID, USER_NAME)
+            print("\nAll tests successful!\n")
+            retry = 6
 
-    print('--==> DOCKERIZED SERVER TEST VERSION <==--')
-    print(f"Testing with UID {UID} as {USER_NAME}...\n\nProgress:")
-    try:
-        post_2_db_api(APP_PATH, USER_NAME)
-        get_from_db_api(APP_PATH, USER_NAME)
-        get_from_mysql(UID, USER_NAME)
-        print("\nAll tests successful!\n")
+        except sql.err.OperationalError as e:
+            print(f'ERROR!\n{e}')
+            retry += 1
+            continue
 
-    # Always cleanup db
-    finally:
-        print("Cleaning up after tests... ", end='')
-        cleanup(UID)
+    print("Cleaning up after tests... ", end='')
+    cleanup(UID)
 
 
 if __name__ == '__main__':

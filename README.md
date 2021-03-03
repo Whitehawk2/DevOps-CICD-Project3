@@ -21,8 +21,8 @@ to build, test and upload the rest_app to docker hub.
 
     * as a bonus, use a containerized MySQL db instead of the old online one.
 
-**Challenge objective - using Mysql as a container - is available in "SQL"
-branch**
+`data` folder contains the `.sql` file to initialise the db in the instance of mysql
+containers, for docker-compose.
 
 by Whitehawk, 2021 D:
 

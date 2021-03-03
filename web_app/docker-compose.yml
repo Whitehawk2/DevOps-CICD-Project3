@@ -4,7 +4,20 @@ services:
   web-app:
     environment:
       -  SECRET
-    image: "whitehawk2/ci-repo-2:${IMAGE_TAG}" 
+      -  DB_HOST
+    depends_on: 
+      - db
+    image: "whitehawk2/ci-repo-1:${IMAGE_TAG}" 
     ports:
       # ingress p5000 to p5000
       - "5000:5000"
+  db:
+    environment:
+      -  MYSQL_RANDOM_ROOT_PASSWORD=1
+    image: "mysql:latest"
+    command: '--default-authentication-plugin=mysql_native_password'
+    # delmerestart: always
+    volumes:
+      - ../data:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"

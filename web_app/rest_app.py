@@ -30,7 +30,7 @@ def user(user_id):
         as json + status code
         """
         db_response = db.get_from_db({'id': user_id})
-        
+
         # using jsonify to set mime type & look better as a response
         if db_response == 500:
             return jsonify({'status': 'error',
@@ -38,7 +38,7 @@ def user(user_id):
         else:
             return jsonify({'status': 'OK',
                             'user_name': db_response}), 200
-    
+
     # POST
     elif request.method == 'POST':
         """
@@ -52,14 +52,14 @@ def user(user_id):
         request_data = request.json.get('user_name')
         db_response = db.post_to_db({'id': user_id,
                                      'user_name': request_data})
-        
+
         if db_response == 500:
             return jsonify({'status': 'error',
                             'reason': 'id already exists'}), 500
         else:
             return jsonify({'status': 'OK',
                             'user_added': request_data}), 200
-    
+
     # PUT
     elif request.method == 'PUT':
         """
@@ -73,14 +73,14 @@ def user(user_id):
         request_data = request.json.get('user_name')
         db_response = db.update_db({'id': user_id,
                                     'user_name': request_data})
-        
+
         if db_response == 500:
             return jsonify({'status': 'error',
                             'reason': 'no such id'}), 500
         else:
             return jsonify({'status': 'OK',
                             'user_updated': request_data}), 200
-    
+
     # DELETE
     elif request.method == 'DELETE':
         """
@@ -90,7 +90,7 @@ def user(user_id):
         returns json + status code.
         """
         db_response = db.delete_from_db({'id': user_id})
-        
+
         if db_response == 500:
             return jsonify({'status': 'error',
                             'reason': 'no such id'}), 500
@@ -112,7 +112,7 @@ def stop_server():
         os.kill(os.getpid(), signal.CTRL_C_EVENT)
         print('server stopped - SIGTERM')
         return 'server stopped'
-    
+
     except AttributeError:
         # on linux:
         os.kill(os.getpid(), signal.SIGTERM)

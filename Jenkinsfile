@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         SECRET = credentials('Mysql-access')
-        registry = "whitehawk2/ci-repo-2"
+        registry = "whitehawk2/ci-repo-1"
         registryCredential = 'docker_hub'
         dockerImage = ''
     }
@@ -15,6 +15,7 @@ pipeline {
                 script {
                     properties([pipelineTriggers([pollSCM('H/30 * * * *')])])
                 }
+                git branch: 'dockermysql', url: 'git@github.com:Whitehawk2/Project3_TESTREALM.git'
             }
         }
         stage('prepare python environment') {
@@ -30,11 +31,13 @@ pipeline {
             }
         }
         stage('run rest_app') {
+            environment{ DB_HOST = 'remotemysql.com' }
             steps {
                 Python_nohup("./web_app/rest_app.py")
             }
         }
         stage('Backend tests') {
+            environment{ DB_HOST = 'remotemysql.com' }
             steps {
                 Py_venv("./backend_testing.py")
             }
@@ -61,14 +64,34 @@ pipeline {
                 }
             }
         }
-        stage('Docker-compose up') {
+        stage('set up MySQL'){
             steps {
-                dir("./web_app"){
-                    sh 'docker-compose up -d'
+                dir("./data"){
+                    withCredentials([file(credentialsId: 'mysql-user-init', variable: 'sql_setup')]) {
+                        writeFile file: 'init.sql', text: readFile("$sql_setup")
+                    }
                 }
             }
         }
+        stage('Docker-compose up') {
+            environment{
+                DB_HOST = 'db'
+            }
+            steps {
+                dir("./web_app"){
+                    sh 'docker-compose up -d &'
+                }
+            }
+        }
+        stage('wait-for-mysql') {
+            steps{
+                sh 'chmod +x ./web_app/wait-for-it.sh && sleep 10 && ./web_app/wait-for-it.sh -t 0 localhost:3306'
+            }
+        }
         stage('Dockerized backend tests') {
+            environment{
+                DB_HOST = 'db'
+            }
             steps {
                 Py_venv("./docker-backend_testing.py")
             }
