@@ -15,7 +15,7 @@ pipeline {
                 script {
                     properties([pipelineTriggers([pollSCM('H/30 * * * *')])])
                 }
-                git branch: 'dockermysql', url: 'git@github.com:Whitehawk2/Project3_TESTREALM.git'
+                git branch: 'SQL', url: 'git@github.com:Whitehawk2/Project3_TESTREALM.git'
             }
         }
         stage('prepare python environment') {
